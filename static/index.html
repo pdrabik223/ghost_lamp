@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <title>GHOST</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+</head>
+
+<body>
+    <h1>SPOOOKY</h1>
+
+
+
+    <script>
+        const animationTimeoutInput = document.getElementById('animationTimeout');
+
+        const colorPicker = document.getElementById('colorPicker');
+        const brightnessSlider = document.getElementById('brightnesSlider');
+        const colorModeToggle = document.getElementById('colorModeToggle');
+
+        const colorPickerSection = document.getElementById('colorPickerSection');
+
+        const nightModeToggle = document.getElementById('nightModeToggle');
+        const nightModeControls = document.getElementById('nightModeControls');
+        const nightModeStart = document.getElementById('nightModeStart');
+        const nightModeEnd = document.getElementById('nightModeEnd');
+        const nightModeBrightnessSlider = document.getElementById('nightModeBrightnesSlider');
+
+        // Toggle color picker visibility
+        function toggleColorPicker() {
+            if (colorModeToggle.checked) {
+                colorPickerSection.classList.add('hidden');
+            } else {
+                colorPickerSection.classList.remove('hidden');
+            }
+        }
+
+        // Event listener for color mode checkbox
+        colorModeToggle.addEventListener('change', toggleColorPicker);
+
+        // Initialize color picker visibility on page load
+        toggleColorPicker();
+
+        // Toggle night mode controls visibility
+        function toggleNightModeControls() {
+            if (nightModeToggle.checked) {
+                nightModeControls.classList.add('visible');
+            } else {
+                nightModeControls.classList.remove('visible');
+            }
+        }
+
+        // Event listener for night mode checkbox
+        nightModeToggle.addEventListener('change', toggleNightModeControls);
+
+        // Initialize night mode controls visibility on page load
+        toggleNightModeControls();
+
+        // Save settings to server
+        function saveSettings() {
+            const animationTimeout = animationTimeoutInput.value;
+            const brightness = brightnessSlider.value;
+            const color = String(colorPicker.value).replace('#', '');
+            const isColorRandom = colorModeToggle.checked;
+            const isNightMode = nightModeToggle.checked;
+            const nightModeStartHour = nightModeStart.value;
+            const nightModeEndHour = nightModeEnd.value;
+            const centralUrl = document.getElementById('centralUrl').value;
+            const nightModeBrightness = nightModeBrightnessSlider.value;
+
+            fetch(`/v1/save_settings?color=${color}&isColorRandom=${isColorRandom}&brightness=${brightness}&isNightMode=${isNightMode}&nightModeStart=${nightModeStartHour}&nightModeEnd=${nightModeEndHour}&nightModeBrightness=${nightModeBrightness}&animationTimeout=${animationTimeout}&central_url=${centralUrl}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+            }).then(data => {
+                alert('✅ Settings saved successfully!');
+            }).catch(error => {
+                alert('❌ Error saving settings: ' + error + "\nquery: " + `/v1/save_settings?brightness=${brightness}&color=${color}&isColorRandom=${isColorRandom}`);
+            });
+        }
+
+        function runAnimation() {
+            fetch(`/v1/run_animation`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+            }).then(data => {
+                console.log(data);
+            }).catch(error => {
+                alert('❌ Error animation: ' + error + "\nquery: " + `/v1/run_animation`)
+            });
+        }
+    </script>
+</body>
+
+</html>
