@@ -173,6 +173,152 @@ soft_colors = [
     Color(254, 220, 228),
     Color(255, 220, 230),
 ]
+vibrant_colors = [
+    # Vibrant pinks
+    Color(255, 145, 180),
+    Color(255, 138, 176),
+    Color(255, 131, 172),
+    Color(255, 124, 168),
+    Color(255, 117, 164),
+    Color(255, 110, 160),
+    Color(255, 103, 156),
+    Color(255, 96, 152),
+    Color(255, 89, 148),
+    Color(255, 82, 144),
+    # Pink → peach
+    Color(255, 82, 137),
+    Color(255, 88, 130),
+    Color(255, 94, 123),
+    Color(255, 100, 116),
+    Color(255, 106, 109),
+    Color(255, 112, 102),
+    Color(255, 118, 95),
+    Color(255, 124, 88),
+    Color(255, 130, 81),
+    Color(255, 136, 74),
+    # Vibrant peach / orange
+    Color(255, 145, 70),
+    Color(255, 153, 72),
+    Color(255, 161, 74),
+    Color(255, 169, 76),
+    Color(255, 177, 78),
+    Color(255, 185, 80),
+    Color(255, 193, 82),
+    Color(255, 201, 84),
+    Color(255, 209, 86),
+    Color(255, 217, 88),
+    # Peach → yellow
+    Color(255, 220, 75),
+    Color(255, 224, 65),
+    Color(255, 228, 55),
+    Color(255, 232, 45),
+    Color(255, 236, 35),
+    Color(255, 240, 25),
+    Color(255, 244, 20),
+    Color(255, 248, 18),
+    Color(255, 252, 16),
+    Color(255, 255, 14),
+    # Vibrant yellows
+    Color(248, 255, 20),
+    Color(240, 255, 25),
+    Color(232, 255, 30),
+    Color(224, 255, 35),
+    Color(216, 255, 40),
+    Color(208, 255, 45),
+    Color(200, 255, 50),
+    Color(192, 255, 55),
+    Color(184, 255, 60),
+    Color(176, 255, 65),
+    # Yellow → mint
+    Color(165, 250, 65),
+    Color(154, 246, 70),
+    Color(143, 242, 75),
+    Color(132, 238, 80),
+    Color(121, 234, 85),
+    Color(110, 230, 90),
+    Color(99, 226, 95),
+    Color(88, 222, 100),
+    Color(77, 218, 105),
+    Color(66, 214, 110),
+    # Vibrant mint / green
+    Color(55, 218, 125),
+    Color(52, 222, 140),
+    Color(49, 226, 155),
+    Color(46, 230, 170),
+    Color(43, 234, 185),
+    Color(40, 238, 200),
+    Color(38, 242, 215),
+    Color(36, 246, 230),
+    Color(34, 250, 240),
+    Color(32, 252, 248),
+    # Mint → cyan
+    Color(30, 246, 250),
+    Color(28, 238, 250),
+    Color(26, 230, 250),
+    Color(24, 222, 250),
+    Color(22, 214, 250),
+    Color(20, 206, 250),
+    Color(18, 198, 250),
+    Color(16, 190, 250),
+    Color(14, 182, 250),
+    Color(12, 174, 250),
+    # Vibrant cyan / blue
+    Color(10, 168, 250),
+    Color(10, 158, 250),
+    Color(10, 148, 250),
+    Color(10, 138, 250),
+    Color(10, 128, 250),
+    Color(10, 118, 250),
+    Color(10, 108, 250),
+    Color(10, 98, 250),
+    Color(10, 88, 250),
+    Color(10, 78, 250),
+    # Blue → lavender
+    Color(18, 72, 250),
+    Color(28, 68, 250),
+    Color(38, 64, 250),
+    Color(48, 60, 250),
+    Color(58, 56, 250),
+    Color(68, 52, 250),
+    Color(78, 48, 250),
+    Color(88, 44, 250),
+    Color(98, 40, 250),
+    Color(108, 36, 250),
+    # Vibrant lavender
+    Color(120, 38, 250),
+    Color(132, 40, 250),
+    Color(144, 42, 250),
+    Color(156, 44, 250),
+    Color(168, 46, 250),
+    Color(180, 48, 250),
+    Color(192, 50, 250),
+    Color(204, 52, 250),
+    Color(216, 54, 250),
+    Color(228, 56, 250),
+    # Lavender → pink
+    Color(235, 58, 244),
+    Color(238, 60, 232),
+    Color(240, 62, 220),
+    Color(242, 64, 208),
+    Color(244, 66, 196),
+    Color(246, 68, 184),
+    Color(248, 70, 172),
+    Color(250, 72, 160),
+    Color(252, 74, 148),
+    Color(255, 76, 136),
+    # Back toward vibrant pink
+    Color(255, 82, 142),
+    Color(255, 88, 148),
+    Color(255, 94, 154),
+    Color(255, 100, 160),
+    Color(255, 106, 166),
+    Color(255, 112, 172),
+    Color(255, 118, 178),
+    Color(255, 124, 184),
+    Color(255, 130, 190),
+    Color(255, 136, 196),
+]
+
 
 app = App(hostname="ghost.local")
 central_url: str = "http://192.168.1.14/v1/connect"
@@ -255,24 +401,26 @@ def synch_time(rtc, timezone_offset=1):
 def animation():
 
     offset = 0
+    c = 0
     while 1 < 2:
         for _ in range(10 * 60 * 5):
 
             if hal_sensor_pin.value() == 0:
-                color = sun_colors[6]
+
                 led_strip.brightness(100)
-                led_strip.fill(Color.gold())
-                # for l in range(30):
-                #     # for c in range(len(Color.colors())):
+                if offset % 2 == 0:
+                    c += 1
 
-                #     led_strip.set_pixel(
-                #         l,
-                #         sun_colors[(l + offset) % len(sun_colors)],
-                #         show=False,
-                #     )
+                for l in range(30):
 
-                # offset += 1
-                # led_strip.show()
+                    led_strip.set_pixel(
+                        l,
+                        vibrant_colors[(l + c) % len(vibrant_colors)],
+                        show=False,
+                    )
+
+                offset += 1
+                led_strip.show()
             else:
                 led_strip.fill(Color.black())
 
