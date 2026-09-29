@@ -4,101 +4,235 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="UTF-8">
-    <title>GHOST</title>
+    <title>Ghost Lamp Control</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="script.js"></script>
+    
+    <style>
+        :root {
+            --ink: #e9f5f0;
+            --muted: #8ca8a2;
+            --panel: rgba(13, 28, 29, 0.84);
+            --line: rgba(154, 223, 199, 0.22);
+            --accent: #a8f0d0;
+            --accent-strong: #69d6ab;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 78% 18%, rgba(113, 198, 166, 0.13), transparent 23rem),
+                radial-gradient(circle at 18% 90%, rgba(81, 128, 142, 0.14), transparent 25rem),
+                #071113;
+            font-family: Georgia, 'Times New Roman', serif;
+        }
+
+        main {
+            width: min(1040px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 4rem 0 3rem;
+        }
+
+        .masthead {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .eyebrow {
+            margin: 0 0 0.6rem;
+            color: var(--accent);
+            font: 0.72rem/1.2 monospace;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(3.5rem, 11vw, 7.5rem);
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            line-height: 0.8;
+            text-shadow: 0 0 24px rgba(168, 240, 208, 0.25);
+        }
+
+        .signal {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0 0 0.45rem;
+            color: var(--muted);
+            font: 0.72rem monospace;
+            text-transform: uppercase;
+        }
+
+        .signal::before {
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 50%;
+            background: var(--accent-strong);
+            box-shadow: 0 0 12px var(--accent-strong);
+            content: '';
+        }
+
+        .console {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: var(--panel);
+            box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(12px);
+        }
+
+        .top-panels {
+            display: grid;
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        }
+
+        .panel,
+        .settings-panel {
+            padding: clamp(1.5rem, 4vw, 3rem);
+        }
+
+        .mode-panel {
+            border-right: 1px solid var(--line);
+        }
+
+        .settings-panel {
+            border-top: 1px solid var(--line);
+        }
+
+        h2 {
+            margin: 0 0 0.4rem;
+            font-size: 1.8rem;
+            font-weight: 400;
+        }
+
+        .intro {
+            margin: 0 0 2rem;
+            color: var(--muted);
+        }
+
+        label {
+            color: var(--ink);
+        }
+
+        input[type='url'],
+        input[type='range'] {
+            accent-color: var(--accent-strong);
+        }
+
+        input[type='color'] {
+            width: 100%;
+            height: 3.2rem;
+            padding: 0.35rem;
+            cursor: pointer;
+        }
+
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .range-row input {
+            flex: 1;
+        }
+
+        output {
+            min-width: 3.5rem;
+            color: var(--accent);
+            font: 0.95rem monospace;
+            text-align: right;
+        }
+
+        button {
+            width: 100%;
+            border-color: var(--accent-strong);
+            background: var(--accent-strong);
+            color: #061311;
+            font-weight: 700;
+        }
+
+        @media (max-width: 720px) {
+            main {
+                padding-top: 2.5rem;
+            }
+
+            .masthead {
+                display: block;
+            }
+
+            .signal {
+                margin-top: 1.5rem;
+            }
+
+            .top-panels {
+                grid-template-columns: 1fr;
+            }
+
+            .mode-panel {
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+        }
+    </style>
+
 
 </head>
 
 <body>
-    <h1>SPOOOKY</h1>
+    <main>
+        <header class="masthead">
+            <div>
 
+                <h1>Ghostly lamp</h1>
+            </div>
 
+        </header>
 
-    <script>
-        const animationTimeoutInput = document.getElementById('animationTimeout');
+        <section class="console" aria-label="Ghost lamp settings">
+            <div class="top-panels">
+                <section class="panel mode-panel">
+                    <h2>Mode</h2>
+                    <p class="intro">Choose how the lamp moves through the dark.</p>
 
-        const colorPicker = document.getElementById('colorPicker');
-        const brightnessSlider = document.getElementById('brightnesSlider');
-        const colorModeToggle = document.getElementById('colorModeToggle');
+                    <label for="modeSelector">Light behavior</label>
+                    <p> oauth 2 stuff we should do all </p>
+                </section>
 
-        const colorPickerSection = document.getElementById('colorPickerSection');
+                <section class="panel color-panel">
+                    <h2>Color</h2>
+                    <label for="colorPicker">Single color</label>
+                    <input id="colorPicker" type="color" value="{{color}}" aria-label="Choose lamp color">
+                </section>
+            </div>
 
-        const nightModeToggle = document.getElementById('nightModeToggle');
-        const nightModeControls = document.getElementById('nightModeControls');
-        const nightModeStart = document.getElementById('nightModeStart');
-        const nightModeEnd = document.getElementById('nightModeEnd');
-        const nightModeBrightnessSlider = document.getElementById('nightModeBrightnesSlider');
+            <section class="settings-panel">
+                <h2>Ghostly lamp</h2>
+                <label for="brightnessSlider">Brightness</label>
+                <div class="range-row">
+                    <input id="brightnessSlider" type="range" min="1" max="100" value="{{brightness}}">
+                    <output id="brightnessValue" for="brightnessSlider">{{brightness}}%</output>
+                </div>
 
-        // Toggle color picker visibility
-        function toggleColorPicker() {
-            if (colorModeToggle.checked) {
-                colorPickerSection.classList.add('hidden');
-            } else {
-                colorPickerSection.classList.remove('hidden');
-            }
-        }
+                <label for="centralUrl">IOT Central URL</label>
+                <input id="centralUrl" type="url" value="{{iot_central_url}}">
 
-        // Event listener for color mode checkbox
-        colorModeToggle.addEventListener('change', toggleColorPicker);
+                <button id="saveButton" type="button">Save</button>
+            </section>
+        </section>
+    </main>
 
-        // Initialize color picker visibility on page load
-        toggleColorPicker();
-
-        // Toggle night mode controls visibility
-        function toggleNightModeControls() {
-            if (nightModeToggle.checked) {
-                nightModeControls.classList.add('visible');
-            } else {
-                nightModeControls.classList.remove('visible');
-            }
-        }
-
-        // Event listener for night mode checkbox
-        nightModeToggle.addEventListener('change', toggleNightModeControls);
-
-        // Initialize night mode controls visibility on page load
-        toggleNightModeControls();
-
-        // Save settings to server
-        function saveSettings() {
-            const animationTimeout = animationTimeoutInput.value;
-            const brightness = brightnessSlider.value;
-            const color = String(colorPicker.value).replace('#', '');
-            const isColorRandom = colorModeToggle.checked;
-            const isNightMode = nightModeToggle.checked;
-            const nightModeStartHour = nightModeStart.value;
-            const nightModeEndHour = nightModeEnd.value;
-            const centralUrl = document.getElementById('centralUrl').value;
-            const nightModeBrightness = nightModeBrightnessSlider.value;
-
-            fetch(`/v1/save_settings?color=${color}&isColorRandom=${isColorRandom}&brightness=${brightness}&isNightMode=${isNightMode}&nightModeStart=${nightModeStartHour}&nightModeEnd=${nightModeEndHour}&nightModeBrightness=${nightModeBrightness}&animationTimeout=${animationTimeout}&central_url=${centralUrl}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-            }).then(data => {
-                alert('✅ Settings saved successfully!');
-            }).catch(error => {
-                alert('❌ Error saving settings: ' + error + "\nquery: " + `/v1/save_settings?brightness=${brightness}&color=${color}&isColorRandom=${isColorRandom}`);
-            });
-        }
-
-        function runAnimation() {
-            fetch(`/v1/run_animation`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-            }).then(data => {
-                console.log(data);
-            }).catch(error => {
-                alert('❌ Error animation: ' + error + "\nquery: " + `/v1/run_animation`)
-            });
-        }
-    </script>
 </body>
 
 </html>
