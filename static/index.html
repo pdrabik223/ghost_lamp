@@ -8,7 +8,11 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="script.js"></script>
-    
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+
     <style>
         :root {
             --ink: #e9f5f0;
@@ -204,17 +208,21 @@
             <div class="top-panels">
                 <section class="panel mode-panel">
                     <h2>Mode</h2>
-                    <p class="intro">Choose how the lamp moves through the dark.</p>
+                    <p class="intro">Choose animations.</p>
 
-                    <label for="modeSelector">Light behavior</label>
-                    <p> oauth 2 stuff we should do all </p>
+                    <select name="animation" id="animation-select">
+                        <option value="single">Single color</option>
+                        <option value="soft_spiral">Soft Spiral</option>
+                    </select>
+                    <button id="addAnimation" type="button">Add</button>
                 </section>
 
                 <section class="panel color-panel">
-                    <h2>Color</h2>
-                    <label for="colorPicker">Single color</label>
-                    <input id="colorPicker" type="color" value="{{color}}" aria-label="Choose lamp color">
+                    <input type="text"></input>
+                    <div id="editor" style="height: 400px;"></div>
+                    <button id="saveAnimations" type="button">Save</button>
                 </section>
+
             </div>
 
             <section class="settings-panel">
@@ -231,6 +239,53 @@
                 <button id="saveButton" type="button">Save</button>
             </section>
         </section>
+
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+
+        <script>
+            window.addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    console.log("saving ")
+                    //TODO save to rpi pi pico 
+                }
+            });
+
+            require.config({
+                paths: {
+                    vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs"
+                }
+            });
+
+            require(["vs/editor/editor.main"], function () {
+
+                const editor = monaco.editor.create(
+                    document.getElementById("editor"),
+                    {
+                        value: `def main(name):
+    message = f"Hello, {name}!"
+    print(message)
+
+hello("World")`,
+
+                        language: "python",
+
+                        theme: "vs-dark",
+
+                        automaticLayout: true,
+
+                        fontSize: 15,
+
+                        minimap: {
+                            enabled: false
+                        }
+                    }
+                );
+
+            });
+        </script>
+
     </main>
 
 </body>

@@ -30,3 +30,9 @@ HAL GND - 18 │● GND        GND ●│ 23
 HAL PWR - 19 │● GP14      GP17 ●│ 22    
 HAL SIG - 20 │● GP15      GP16 ●│ 21 - LED STRIP DATA
              └──────────────────┘
+
+
+
+
+# on the fly updates 
+As a stepping stone to that feature I implement on fly animation update
