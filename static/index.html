@@ -7,7 +7,7 @@
     <title>Ghost Lamp Control</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script src="script.js"></script>
+
 
     <style>
         :root {
@@ -288,7 +288,7 @@
             var query = `/v1/save_settings?brightness=${brightness}&iot_central_url=${iot_central_url}&selected_animation=${selected_animation}`
 
             query = query + '&' + animation_params();
-            
+
             console.log(query)
             fetch(query, {
                 method: 'GET',

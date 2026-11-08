@@ -202,7 +202,7 @@ def day_sun_cycle(elapsed_intervals, props={"cache": {}}):
 
     current_time = utime.localtime()
     # current day of the month
-    data = {}
+    data = []
     if current_time[2] in props["cache"].keys():
         data = props["cache"][current_time[2]]
         print("loading cache")
@@ -444,16 +444,17 @@ def toggle_lamp(cl: socket.socket, parameters: dict):
 
 
 def get_hex_color(color: Color):
-    return "#" + ("".join(hexify(value) for value in color.to_tuple()))
+    return ("".join(hexify(value) for value in color.to_tuple()))
 
 
 def save_settings(cl: socket.socket, parameters: dict):
-
+    
     global brightness
     global iot_central_url
     global selected_animation
-    global single_color_value
+    global single_color_value   
 
+    print(parameters)
     brightness = int(parameters.get("brightness", 100))
     iot_central_url = str(parameters.get("iot_central_url", iot_central_url))
     selected_animation = str(parameters.get("selected_animation", selected_animation))
@@ -465,7 +466,7 @@ def save_settings(cl: socket.socket, parameters: dict):
             *tuple(int(new_color_str[i : i + 2], 16) for i in (0, 2, 4))
         )
 
-    cl.sendall(compose_response(response="ok"))
+    cl.sendall(compose_response())
 
 
 def refresh_connection_to_central() -> bool:
@@ -520,17 +521,16 @@ def animation_thread():
             measure_button()
             if lamp_on:
 
-                # t_diff = datetime_diff_seconds(
-                #     utime.localtime(), ANIMATIONS["spiral"]["last_activation"]
-                # )
-
                 intervals = ANIMATIONS[selected_animation]["animation"](intervals)
+
                 if intervals == None:
                     intervals = 0
                 else:
                     intervals += 1
+
             else:
                 led_strip.fill(Color.black())
+                intervals = 1000
 
             time.sleep(0.1)
         refresh_connection_to_central()
