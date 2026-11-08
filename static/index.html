@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="script.js"></script>
-    
+
     <style>
         :root {
             --ink: #e9f5f0;
@@ -207,18 +207,64 @@
                     <p class="intro">Choose how the lamp moves through the dark.</p>
 
                     <label for="modeSelector">Light behavior</label>
-                    <p> oauth 2 stuff we should do all </p>
+                    <select id="modeSelector" name="modeSelector" onchange="selectAnimation()">
+                        <option value="single_color">Single Color</option>
+                        <option value="spiral" selected>Spiral</option>
+                        <option value="day_cycle_animation">Day animation</option>
+                        <option value="off">Off</option>
+                    </select>
+                </section>
+                <script>
+                    window.onload = function () {
+                        selectAnimation();
+                    };
+                    function selectAnimation() {
+                        var animations = ["single_color", "spiral", "day_cycle_animation", "off"]
+
+                        for (var i = 0; i < animations.length; i++) {
+                            document.getElementById(animations[i]).style.display = "none";
+                        }
+
+                        var select = document.getElementById("modeSelector").value
+                        document.getElementById(select).style.display = "block";
+                    }
+
+                </script>
+                <section class="panel color-panel">
+                    <div>
+                        <div id="single_color">
+                            <h2>Color</h2>
+                            <p>Single color</p>
+                            <input id="single_color_value" type="color" value="{{single_color_value}}">
+                        </div>
+
+
+                        <div id="spiral">
+                            <h2>Spiral</h2>
+                            <p>Spiral animation cycling colors</p>
+
+                            <!-- <label for="colorPicker">Spiral speed</label> -->
+                            <!-- <input id="spiral_speed" type="range" min="1" max="100" value="{{spiral_speed}}">
+                        <output id="spiral_speed_value" for="spiral_speed">{{spiral_speed}}</output> -->
+                        </div>
+
+                        <div id="day_cycle_animation">
+                            <h2>Day animation</h2>
+                            <label for="colorPicker">Animation following day sun cycle</label>
+                        </div>
+
+                        <div id="off">
+                            <h2>The lamp is turned off</h2>
+                        </div>
+                    </div>
                 </section>
 
-                <section class="panel color-panel">
-                    <h2>Color</h2>
-                    <label for="colorPicker">Single color</label>
-                    <input id="colorPicker" type="color" value="{{color}}" aria-label="Choose lamp color">
-                </section>
+
             </div>
 
+
             <section class="settings-panel">
-                <h2>Ghostly lamp</h2>
+                <h2>General settings</h2>
                 <label for="brightnessSlider">Brightness</label>
                 <div class="range-row">
                     <input id="brightnessSlider" type="range" min="1" max="100" value="{{brightness}}">
@@ -228,10 +274,47 @@
                 <label for="centralUrl">IOT Central URL</label>
                 <input id="centralUrl" type="url" value="{{iot_central_url}}">
 
-                <button id="saveButton" type="button">Save</button>
+                <button id="saveButton" type="button" onclick="set_general_settings()">Save</button>
             </section>
         </section>
     </main>
+
+    <script>
+        function set_general_settings() {
+            var brightness = document.getElementById("brightnessSlider").value
+            var iot_central_url = document.getElementById("centralUrl").value
+            var selected_animation = document.getElementById("modeSelector").value
+
+            var query = `/v1/save_settings?brightness=${brightness}&iot_central_url=${iot_central_url}&selected_animation=${selected_animation}`
+
+            query = query + '&' + animation_params();
+            
+            console.log(query)
+            fetch(query, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+            }).then(data => {
+                alert('✅ Settings saved successfully!');
+            }).catch(error => {
+                alert('❌ Error saving settings: ' + error + "\nquery: " + query);
+            });
+
+        }
+
+        function animation_params() {
+            // var animations = ["single_color", "spiral", "day_cycle_animation"]
+            var animation_params = ""
+            if (document.getElementById("modeSelector").value == "single_color")
+                animation_params += `param1=${document.getElementById("single_color_value").value}`.replace("#", "")
+
+            return animation_params
+        }
+
+
+    </script>
 
 </body>
 

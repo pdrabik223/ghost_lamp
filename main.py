@@ -179,10 +179,215 @@ app = App(hostname="ghost.local")
 iot_central_url: str = "http://192.168.1.14/v1/connect"
 rtc = RTC()
 
-led_color = Color.white()
+single_color_value = Color.white()
 brightness = 100
+
 lamp_on = hal_sensor_pin.value() == 0
+
 last_button_reading = hal_sensor_pin.value()
+is_connected_to_central = False
+
+
+def day_sun_cycle(elapsed_intervals, props={"cache": {}}):
+    if elapsed_intervals < 30:
+        return elapsed_intervals
+
+    def tuple_to_seconds(time: tuple):
+        return time[0] * 60 * 60 + time[1] * 60 + time[2]
+
+    def parse_time(time_str: str):
+        # hour minute second
+        time_tuple = tuple(map(int, time_str.split(":")))
+        return tuple_to_seconds(time_tuple)
+
+    current_time = utime.localtime()
+    # current day of the month
+    data = {}
+    if current_time[2] in props["cache"].keys():
+        data = props["cache"][current_time[2]]
+        print("loading cache")
+    else:
+        resp = requests.get(
+            "https://api.sunrisesunset.io/json?lat=51.75201840666799&lng=51.75201840666799&time_format=24&formatted=0"
+        )
+        print("pulling data")
+        r = resp.json()["results"]
+
+        data = [
+            # First visible signs of daylight before sunrise.
+            # Sky begins to brighten; the Sun is still below the horizon.
+            # "first_light":
+            parse_time(r["first_light"]),
+            # Beginning of astronomical/nautical transition toward daylight.
+            # Sun is below the horizon; sky appears very dark blue.
+            # "nautical_twilight_begin":
+            parse_time(r["nautical_twilight_begin"]),
+            # Morning blue hour: diffuse blue light before sunrise.
+            # Sun is below the horizon; sky appears deep blue or cyan.
+            # "blue_hour_morning_begin":
+            parse_time(r["blue_hour_morning"]["begin"]),
+            # End of morning blue hour.
+            # Sky transitions from deep blue to lighter blue and warm dawn colors.
+            # "blue_hour_morning_end":
+            parse_time(r["blue_hour_morning"]["end"]),
+            # Dawn: the sky becomes noticeably brighter before sunrise.
+            # Sun is below the horizon; sky may appear orange, pink, or pale blue.
+            # "dawn":
+            parse_time(r["dawn"]),
+            # Sunrise: the Sun crosses the horizon.
+            # Sun typically appears orange, red, or golden due to atmospheric scattering.
+            # "sunrise":
+            parse_time(r["sunrise"]),
+            # Morning golden hour: warm, soft sunlight shortly after sunrise.
+            # Sun appears golden yellow, orange, or amber.
+            # "golden_hour":
+            parse_time(r["golden_hour"]),
+            # Solar noon: Sun reaches its highest position in the sky.
+            # Sun appears bright white or pale yellow, depending on atmospheric conditions.
+            # "solar_noon":
+            parse_time(r["solar_noon"]),
+            # Evening golden hour begins: sunlight becomes warm and directional.
+            # Sun appears golden yellow, orange, or amber.
+            # "golden_hour_evening_begin":
+            parse_time(r["golden_hour_evening"]["begin"]),
+            # Evening golden hour ends: the Sun approaches the horizon.
+            # Sunlight becomes increasingly orange, red, and warm.
+            # "golden_hour_evening_end":
+            parse_time(r["golden_hour_evening"]["end"]),
+            # Dusk: the Sun has set, but some daylight remains.
+            # Sun is below the horizon; sky often appears orange, pink, or purple.
+            # "dusk":
+            parse_time(r["dusk"]),
+            # Evening blue hour begins: twilight transitions into deep blue tones.
+            # Sun is below the horizon; sky appears blue, indigo, or violet.
+            # "blue_hour_evening_begin":
+            parse_time(r["blue_hour_evening"]["begin"]),
+            # Evening blue hour ends: the sky becomes significantly darker.
+            # Sun is below the horizon; sky transitions to dark navy blue.
+            # "blue_hour_evening_end":
+            parse_time(r["blue_hour_evening"]["end"]),
+            # End of nautical twilight: the sky is becoming fully dark.
+            # Sun is well below the horizon; sky appears dark blue or nearly black.
+            # "nautical_twilight_end":
+            parse_time(r["nautical_twilight_end"]),
+            # Moonrise: the Moon crosses the horizon.
+            # Moon often appears orange or yellow near the horizon, becoming white or pale gray higher up.
+            # "moonrise":
+            # parse_time(r["moonrise"]),
+            # Moonset: the Moon disappears below the horizon.
+            # Moon may appear yellow, orange, or reddish near the horizon.
+            # "moonset":
+            # parse_time(r["moonset"]),
+        ]
+        props["cache"][current_time[2]] = data
+
+    # hour minute second
+    current_time = tuple_to_seconds((current_time[3], current_time[4], current_time[5]))
+
+    id = 0
+    for i in data:
+        if i > current_time:
+            break
+        else:
+            id += 1
+
+    sun_step_colors = [
+        # Morning
+        # "first_light":
+        Color(35, 45, 90),  # Deep twilight blue
+        # "nautical_twilight_begin":
+        Color(20, 30, 75),  # Dark navy blue
+        # "blue_hour_morning_begin":
+        Color(35, 65, 150),  # Deep blue
+        # "blue_hour_morning_end":
+        Color(75, 130, 210),  # Soft sky blue
+        # "dawn":
+        Color(255, 115, 75),  # Warm coral orange
+        # "sunrise":
+        Color(255, 85, 35),  # Sunrise orange-red
+        # "golden_hour":
+        Color(255, 175, 65),  # Golden amber
+        # Daytime
+        # "solar_noon":
+        Color(255, 245, 215),  # Warm daylight white
+        # Evening
+        # "golden_hour_evening_begin":
+        Color(255, 185, 85),  # Golden yellow
+        # "golden_hour_evening_end":
+        Color(255, 105, 45),  # Deep sunset orange
+        # "dusk":
+        Color(185, 75, 115),  # Dusky pink
+        # "blue_hour_evening_begin":
+        Color(75, 90, 185),  # Twilight blue
+        # "blue_hour_evening_end":
+        Color(30, 45, 115),  # Deep indigo
+        # "nautical_twilight_end":
+        Color(12, 18, 45),  # Midnight navy
+        # Moon
+        # "moonrise": Color(210, 195, 155),  # Warm moonlight
+        # "moonset": Color(175, 155, 135),  # Fading warm moonlight
+    ]
+
+    if id >= len(sun_step_colors):
+        id = len(sun_step_colors) - 1
+
+    led_strip.fill(sun_step_colors[id])
+
+
+def off_animation(elapsed_intervals):
+    led_strip.fill(Color.black())
+
+
+def single_color_animation(elapsed_intervals):
+    if elapsed_intervals < 10:
+        return elapsed_intervals
+    global single_color_value
+    led_strip.brightness(brightness, show=False)
+    led_strip.fill(single_color_value)
+
+
+def spiral_animation(elapsed_intervals, static_variables={"offset": 0, "c": 0}):
+
+    if static_variables["offset"] % 2 == 0:
+        static_variables["c"] += 1
+
+    for l in range(30):
+        led_strip.set_pixel(
+            l,
+            vibrant_colors[(l + static_variables["c"]) % len(vibrant_colors)],
+            show=False,
+        )
+
+    static_variables["offset"] += 1
+    led_strip.brightness(brightness)
+
+
+ANIMATIONS = {
+    "day_cycle_animation": {
+        "animation": day_sun_cycle,
+        "last_activation": (2026, 1, 1, 0, 0, 0, 0, 0),
+    },
+    "single_color": {
+        "animation": single_color_animation,
+        "last_activation": (2026, 1, 1, 0, 0, 0, 0, 0),
+    },
+    "spiral": {
+        "animation": spiral_animation,
+        "last_activation": (2026, 1, 1, 0, 0, 0, 0, 0),
+    },
+    "off": {
+        "animation": off_animation,
+        "last_activation": (2026, 1, 1, 0, 0, 0, 0, 0),
+    },
+}
+
+
+ROUTINE = [
+    # {timestamp, }
+]
+
+follow_routine: bool = False
+selected_animation: str = "day_cycle_animation"
 
 
 def get_operation_time(uptime: int):
@@ -219,7 +424,7 @@ def home_page(cl: socket.socket, parameters: dict):
             response=format_dict(
                 load_html("static/index.html"),
                 {
-                    "color": get_hex_color(led_color),
+                    "single_color_value": get_hex_color(single_color_value),
                     "brightness": brightness,
                     "iot_central_url": iot_central_url,
                     "uptime": get_operation_time(
@@ -233,20 +438,34 @@ def home_page(cl: socket.socket, parameters: dict):
     )
 
 
+def toggle_lamp(cl: socket.socket, parameters: dict):
+    #
+    pass
+
+
+def get_hex_color(color: Color):
+    return "#" + ("".join(hexify(value) for value in color.to_tuple()))
+
+
 def save_settings(cl: socket.socket, parameters: dict):
-    print(parameters)
+
     global brightness
     global iot_central_url
-    global led_color
-    global animation
+    global selected_animation
+    global single_color_value
 
     brightness = int(parameters.get("brightness", 100))
-    iot_central_url = int(parameters.get("iot_central_url", iot_central_url))
+    iot_central_url = str(parameters.get("iot_central_url", iot_central_url))
+    selected_animation = str(parameters.get("selected_animation", selected_animation))
 
-    cl.sendall(compose_response())
+    if selected_animation == "single_color":
+        new_color_str = parameters.get("param1", get_hex_color(single_color_value))
 
+        single_color_value = Color(
+            *tuple(int(new_color_str[i : i + 2], 16) for i in (0, 2, 4))
+        )
 
-is_connected_to_central = False
+    cl.sendall(compose_response(response="ok"))
 
 
 def refresh_connection_to_central() -> bool:
@@ -286,42 +505,30 @@ def measure_button():
     reading = hal_sensor_pin.value()
     global last_button_reading
     global lamp_on
+
     if last_button_reading != reading:
         lamp_on = reading == 0
         last_button_reading = reading
 
 
-animation: str = "vibrant_colors"
-
-
-def change_animation():
-    pass
-
-
-def animation():
-    global animation
-
-    offset = 0
-    c = 0
+def animation_thread():
+    global selected_animation
+    intervals = 1000
     while 1 < 2:
         for _ in range(10 * 60 * 5):
+            # button simply turns animation off
             measure_button()
-
             if lamp_on:
-                led_strip.brightness(brightness)
-                if offset % 2 == 0:
-                    c += 1
 
-                for l in range(30):
+                # t_diff = datetime_diff_seconds(
+                #     utime.localtime(), ANIMATIONS["spiral"]["last_activation"]
+                # )
 
-                    led_strip.set_pixel(
-                        l,
-                        vibrant_colors[(l + c) % len(vibrant_colors)],
-                        show=False,
-                    )
-
-                offset += 1
-                led_strip.show()
+                intervals = ANIMATIONS[selected_animation]["animation"](intervals)
+                if intervals == None:
+                    intervals = 0
+                else:
+                    intervals += 1
             else:
                 led_strip.fill(Color.black())
 
@@ -333,10 +540,11 @@ if __name__ == "__main__":
 
     synch_time(rtc)
     random.seed(utime.localtime()[4] * 60 + utime.localtime()[5])
-    _thread.start_new_thread(animation, ())
+    _thread.start_new_thread(animation_thread, ())
 
     app.register_endpoint("/v1", home_page)
     app.register_endpoint("/v1/save_settings", save_settings)
+    app.register_endpoint("/v1/toggle_lamp", toggle_lamp)
 
     try:
         app.main_loop()
